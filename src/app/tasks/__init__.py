@@ -1,0 +1,1 @@
+from .receipt_ocr_task import start_receipt_ocr_task

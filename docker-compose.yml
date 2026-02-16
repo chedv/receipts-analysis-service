@@ -1,0 +1,58 @@
+services:
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "9001:9000"
+      - "9002:9001"
+    command: [ "server", "--console-address", ":9001", "/data" ]
+    volumes:
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+  minio-buckets:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - minio
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set dockerminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb dockerminio/${S3_BUCKET};
+      exit 0;
+      "
+
+  redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A src.app.celery:celery_app worker --loglevel=info
+    depends_on:
+      - redis
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      POSTGRES_DATABASE_URI: postgresql://user:password@db:5432/receipts_db
+      ASYNC_POSTGRES_DATABASE_URI: postgresql+asyncpg://user:password@db:5432/receipts_db
+      S3_ENDPOINT: http://minio:9000
+      REDIS_HOST: redis
+
+  db:
+    image: postgres:16
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: receipts_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+    minio-data:
+    postgres-data:

@@ -1,0 +1,38 @@
+from typing import AsyncGenerator
+
+import redis.asyncio as redis
+from aioboto3 import Session
+from fastapi import Depends
+from starlette.requests import Request
+from types_aiobotocore_s3 import S3Client
+
+from src.app.database import Database
+from src.app.services.receipt_service import ReceiptService
+from src.settings import settings
+
+
+async def get_s3_client() -> AsyncGenerator[S3Client, None]:
+    async with Session().client(
+        service_name="s3",
+        region_name=settings.aws_region,
+        endpoint_url=settings.s3_endpoint,
+        aws_access_key_id=settings.aws_access_key_id,
+        aws_secret_access_key=settings.aws_secret_access_key,
+    ) as s3_client:
+        yield s3_client
+
+
+async def get_redis_client() -> redis.Redis:
+    return redis.Redis(host=settings.redis_host, port=settings.redis_port)
+
+
+async def get_database(request: Request) -> Database:
+    return request.app.state.database
+
+
+async def get_receipt_service(
+    s3_client: S3Client = Depends(get_s3_client),
+    redis_client: redis.Redis = Depends(get_redis_client),
+    database: Database = Depends(get_database),
+) -> ReceiptService:
+    return ReceiptService(s3_client, redis_client, database)
