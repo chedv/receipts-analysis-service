@@ -1,7 +1,7 @@
 [project]
 name = "receipts-analysis-service"
 version = "0.1.0"
-description = ""
+description = "Python-based microservice that extracts structured data from receipt images using OCR, rule-based parsing, and machine learning-based product classification"
 authors = [
     {name = "chedv",email = "chernovdv001@gmail.com"}
 ]
