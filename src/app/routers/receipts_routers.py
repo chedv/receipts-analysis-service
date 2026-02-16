@@ -1,6 +1,7 @@
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from starlette import status
 
 from src.app.routers.dependencies import get_receipt_service
 from src.app.schemas.receipt_schemas import ReceiptUploadResponseModel, ReceiptStatusResponseModel
@@ -11,11 +12,12 @@ router = APIRouter()
 
 @router.post("/upload", response_model=ReceiptUploadResponseModel)
 async def receipt_upload(
-    file_upload: UploadFile = File(...),
+    receipt_file: UploadFile = File(...),
     receipt_service: ReceiptService = Depends(get_receipt_service),
 ):
-    file_content = await file_upload.read()
-    file_name = file_upload.filename
+    file_content = await receipt_file.read()
+    if not (file_name := receipt_file.filename):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File name is required")
     receipt_id = await receipt_service.upload(file_content=file_content, file_name=file_name)
     return {"receipt_id": receipt_id}
 
