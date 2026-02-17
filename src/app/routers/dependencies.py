@@ -3,9 +3,11 @@ from typing import AsyncGenerator
 import redis.asyncio as redis
 from aioboto3 import Session
 from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.requests import Request
 from types_aiobotocore_s3 import S3Client
 
+from src.app.repositories.receipt_repository import ReceiptRepository
 from src.app.database import Database
 from src.app.services.receipt_service import ReceiptService
 from src.settings import settings
@@ -30,9 +32,21 @@ async def get_database(request: Request) -> Database:
     return request.app.state.database
 
 
+async def get_async_db_connection(
+    database: Database = Depends(get_database)
+) -> AsyncGenerator[AsyncConnection, None]:
+    async with database.connect() as connection:
+        yield connection
+
+
+async def get_receipt_repository() -> ReceiptRepository:
+    return ReceiptRepository()
+
+
 async def get_receipt_service(
     s3_client: S3Client = Depends(get_s3_client),
     redis_client: redis.Redis = Depends(get_redis_client),
     database: Database = Depends(get_database),
+    receipt_repository: ReceiptRepository = Depends(get_receipt_repository),
 ) -> ReceiptService:
-    return ReceiptService(s3_client, redis_client, database)
+    return ReceiptService(s3_client, redis_client, database, receipt_repository)

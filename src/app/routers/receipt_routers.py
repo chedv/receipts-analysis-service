@@ -1,10 +1,16 @@
 import uuid
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette import status
 
-from src.app.routers.dependencies import get_receipt_service
-from src.app.schemas.receipt_schemas import ReceiptUploadResponseModel, ReceiptStatusResponseModel
+from src.app.repositories.receipt_repository import ReceiptRepository
+from src.app.routers.dependencies import get_receipt_service, get_receipt_repository, get_async_db_connection
+from src.app.schemas.receipt_schemas import (
+    ReceiptUploadResponseModel,
+    ReceiptStatusResponseModel,
+    ReceiptOcrResultResponseModel,
+)
 from src.app.services.receipt_service import ReceiptService
 
 router = APIRouter()
@@ -28,3 +34,13 @@ async def get_receipt_status(
     receipt_service: ReceiptService = Depends(get_receipt_service),
 ):
     return await receipt_service.get_receipt_status(receipt_id=receipt_id)
+
+
+@router.get("/result/{receipt_id}", response_model=ReceiptOcrResultResponseModel)
+async def get_receipt_result(
+    receipt_id: uuid.UUID,
+    receipt_repository: ReceiptRepository = Depends(get_receipt_repository),
+    connection: AsyncConnection = Depends(get_async_db_connection),
+):
+    raw_receipt_text = await receipt_repository.get_raw_receipt_text(str(receipt_id), connection)
+    return {"receipt_text": raw_receipt_text}

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from src.app.routers import receipts_routers
+from src.app.routers import receipt_routers
 
 router = APIRouter()
 
-router.include_router(receipts_routers.router, prefix="/receipts")
+router.include_router(receipt_routers.router, prefix="/receipts")

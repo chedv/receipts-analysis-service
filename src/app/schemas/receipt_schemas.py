@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -12,3 +13,7 @@ class ReceiptUploadResponseModel(BaseModel):
 class ReceiptStatusResponseModel(BaseModel):
     status: TaskStatus
     detail: str | None = None
+
+
+class ReceiptOcrResultResponseModel(BaseModel):
+    receipt_text: Any
