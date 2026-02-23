@@ -985,21 +985,6 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.8)", "htt
 standard-no-fastapi-cloud-cli = ["email-validator (>=2.0.0)", "fastapi-cli[standard-no-fastapi-cloud-cli] (>=0.0.8)", "httpx (>=0.23.0,<1.0.0)", "jinja2 (>=3.1.5)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.18)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
-name = "fastapi-decorators"
-version = "1.0.19"
-description = "Create decorators for your endpoints using FastAPI dependencies."
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "fastapi_decorators-1.0.19-py3-none-any.whl", hash = "sha256:9d95372035e4f3d82050365d1ba9446b65b2fe0857d052db4b85259f0df39048"},
-    {file = "fastapi_decorators-1.0.19.tar.gz", hash = "sha256:2b3376763278ff25a7a4804b29630b15d2d074a9c1a9a077e12654777e94c225"},
-]
-
-[package.dependencies]
-fastapi = ">=0.70.0"
-
-[[package]]
 name = "filelock"
 version = "3.24.1"
 description = "A platform independent file lock."
@@ -4196,4 +4181,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "a3c2ef035d14d424719ff0d02032dbd526d9d26550e34ddb50c23032636228e8"
+content-hash = "4bfa61811204ed964c77ef83165730ef39fd4b797921253f1fe9f05e915fb65a"

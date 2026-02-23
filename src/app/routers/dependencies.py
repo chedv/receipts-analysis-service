@@ -6,12 +6,12 @@ import redis.asyncio as redis
 from aioboto3 import Session
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi_decorators import depends
 from jwt import PyJWKClient, PyJWKClientError, DecodeError
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette.requests import Request
 from types_aiobotocore_s3 import S3Client
 
+from src.app.schemas.auth_schemas import UserProfile
 from src.app.exceptions import UnauthorizedException
 from src.app.repositories.receipt_repository import ReceiptRepository
 from src.app.database import Database
@@ -22,8 +22,7 @@ http_bearer_token_auth = HTTPBearer()
 jwks_client = PyJWKClient(uri=urljoin(settings.auth0_domain, "/.well-known/jwks.json"))
 
 
-@depends
-async def authenticate(auth_credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer_token_auth)):
+async def get_user_profile(auth_credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer_token_auth)):
     if not auth_credentials:
         raise UnauthorizedException
 
@@ -33,15 +32,19 @@ async def authenticate(auth_credentials: HTTPAuthorizationCredentials | None = D
         raise UnauthorizedException
 
     try:
-        return jwt.decode(
+        payload = jwt.decode(
             auth_credentials.credentials,
-            signing_key,
+            signing_key.key,
             algorithms=[settings.auth0_signing_algorithm],
             audience=settings.auth0_api_audience,
             issuer=settings.auth0_domain,
         )
     except DecodeError:
         raise UnauthorizedException
+
+    user_id = payload[urljoin(settings.auth0_namespace, "/claims/sub")]
+    user_email = payload[urljoin(settings.auth0_namespace, "/claims/user_email")]
+    return UserProfile(user_id=user_id, user_email=user_email)
 
 
 async def get_s3_client() -> AsyncGenerator[S3Client, None]:
@@ -75,9 +78,10 @@ async def get_receipt_repository() -> ReceiptRepository:
 
 
 async def get_receipt_service(
+    user_profile: UserProfile = Depends(get_user_profile),
     s3_client: S3Client = Depends(get_s3_client),
     redis_client: redis.Redis = Depends(get_redis_client),
     database: Database = Depends(get_database),
     receipt_repository: ReceiptRepository = Depends(get_receipt_repository),
 ) -> ReceiptService:
-    return ReceiptService(s3_client, redis_client, database, receipt_repository)
+    return ReceiptService(user_profile, s3_client, redis_client, database, receipt_repository)
