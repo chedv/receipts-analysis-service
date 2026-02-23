@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from src.app.database import Database
 from src.app.urls import router
@@ -16,6 +17,18 @@ async def lifespan(app: FastAPI):
 
 
 fastapi_app = FastAPI(lifespan=lifespan)
+
+allowed_origins = [
+    "http://localhost:3001",
+]
+
+fastapi_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials= True,
+)
 
 fastapi_app.include_router(router, prefix="/api/v1")
 

@@ -1,6 +1,6 @@
 [project]
 name = "receipts-analysis-service"
-version = "0.1.0"
+version = "1.0.0"
 description = "Python-based microservice that extracts structured data from receipt images using OCR, rule-based parsing, and machine learning-based product classification"
 authors = [
     {name = "chedv",email = "chernovdv001@gmail.com"}
@@ -21,6 +21,9 @@ dependencies = [
     "psycopg2-binary (>=2.9.11,<3.0.0)",
     "paddleocr (>=3.4.0,<4.0.0)",
     "paddlepaddle (==3.2.0)",
+    "pyjwt (>=2.11.0,<3.0.0)",
+    "fastapi-decorators (>=1.0.19,<2.0.0)",
+    "cryptography (>=46.0.5,<47.0.0)",
 ]
 
 
