@@ -34,12 +34,12 @@ async def receipt_upload(
     return {"receipt_id": receipt_id}
 
 
-@router.get("/status/{receipt_id}", response_model=ReceiptStatusResponseModel)
-async def get_receipt_status(
-    receipt_id: uuid.UUID,
+@router.get("/status", response_model=dict[uuid.UUID, ReceiptStatusResponseModel])
+async def get_receipts_status(
+    receipt_ids: list[uuid.UUID],
     receipt_service: ReceiptService = Depends(get_receipt_service),
 ):
-    return await receipt_service.get_receipt_status(receipt_id=receipt_id)
+    return await receipt_service.get_receipt_statuses(receipt_ids=receipt_ids)
 
 
 @router.get("/result/{receipt_id}", response_model=ReceiptOcrResultResponseModel)

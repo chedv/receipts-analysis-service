@@ -1,3 +1,4 @@
+import asyncio
 import io
 import json
 import uuid
@@ -47,6 +48,10 @@ class ReceiptService:
     async def get_receipt_status(self, receipt_id: uuid.UUID) -> dict:
         raw_value = await self.redis_client.get(f"receipt-{receipt_id}")
         return json.loads(raw_value)
+
+    async def get_receipt_statuses(self, receipt_ids: list[uuid.UUID]) -> dict:
+        receipt_statuses = await asyncio.gather(*[self.get_receipt_status(receipt_id) for receipt_id in receipt_ids])
+        return dict(zip(receipt_ids, receipt_statuses))
 
     async def ocr(self, file_content: bytes, receipt_id: str, user_id: str):
         try:
