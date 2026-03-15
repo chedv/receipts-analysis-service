@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncConnection
 from starlette import status
 
@@ -36,7 +36,7 @@ async def receipt_upload(
 
 @router.get("/status", response_model=dict[uuid.UUID, ReceiptStatusResponseModel])
 async def get_receipts_status(
-    receipt_ids: list[uuid.UUID],
+    receipt_ids: list[uuid.UUID] = Query(),
     receipt_service: ReceiptService = Depends(get_receipt_service),
 ):
     return await receipt_service.get_receipt_statuses(receipt_ids=receipt_ids)
